@@ -1,6 +1,7 @@
 import { retryAsync } from './util/async.js'
 import { execPromise } from './util/exec.js'
 import { getRootPath } from './util/electron.js'
+import os from 'os'
 
 /**
  * Retieve information about all licenses and usage information.
@@ -51,10 +52,18 @@ import { getRootPath } from './util/electron.js'
  * ```
  * @returns {LicenseInfo} object with license usage information
  */
+const SWLM_DEMO = 1
 export default async function getLicenseUsage () {
+  if (SWLM_DEMO) {
+    return new Promise((resolve, reject) => resolve(getDemoData()))
+  }
   const { stdout } = await execPromise(
-    'reg query "HKLM\\SOFTWARE\\FLEXlm License Manager" /v SW_D_LICENSE_FILE')
-  const licenseServer = stdout.trim().split(/\s+/).pop()
+    'reg query "HKLM\\SOFTWARE\\FLEXlm License Manager" /v SW_D_LICENSE_FILE'
+  )
+  const licenseServer = stdout
+    .trim()
+    .split(/\s+/)
+    .pop()
   const rootPath = getRootPath()
   const commandString = `"${rootPath}\\exe\\swlmutil.exe" lmstat -c ${licenseServer} -f`
 
@@ -92,7 +101,8 @@ function parseLicenseInfo (stdout) {
   let license = null
   for (const line of lines) {
     if (usageReggie.test(line)) {
-      if (license) { // found a new license so we are done with the last one
+      if (license) {
+        // found a new license so we are done with the last one
         licenses.push(license)
       }
       const match = usageReggie.exec(line)
@@ -111,4 +121,23 @@ function parseLicenseInfo (stdout) {
     licenses.push(license)
   }
   return { licenses }
+}
+
+export function getDemoData () {
+  return {
+    licenses: [
+      {
+        licenseName: 'swepdm_cadeditorandweb',
+        total: 25,
+        inUse: Math.ceil(Math.random() * 25),
+        users: ['demo']
+      },
+      {
+        licenseName: 'solidworks',
+        total: 25,
+        inUse: Math.ceil(Math.random() * 25),
+        users: ['demo', Math.random() > 0.5 && os.userInfo().username.toLowerCase()]
+      }
+    ]
+  }
 }

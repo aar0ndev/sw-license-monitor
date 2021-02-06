@@ -12,7 +12,7 @@ export function createWindow () {
     transparent: true,
     toolbar: false,
     frame: false,
-    resizable: false,
+    resizable: process.env.NODE_ENV === 'development',
     skipTaskbar: true,
     minimizable: false,
     webPreferences: {

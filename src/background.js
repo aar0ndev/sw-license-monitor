@@ -5,7 +5,7 @@ import { installVueDevtools } from 'vue-cli-plugin-electron-builder/lib'
 import { createWindow } from './window'
 import logger from 'electron-log'
 const isDevelopment = process.env.NODE_ENV !== 'production'
-
+const DEMO_MODE = true
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
@@ -22,7 +22,11 @@ if (!hasLock) {
   const { autoUpdater } = require('electron-updater')
   autoUpdater.logger = require('electron-log')
   autoUpdater.logger.transports.file.level = 'info'
-  autoUpdater.checkForUpdatesAndNotify()
+  if (!DEMO_MODE) {
+    autoUpdater.checkForUpdatesAndNotify()
+  } else {
+    console.info('Demo mode -> skipping update check')
+  }
 
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     if (win) {
